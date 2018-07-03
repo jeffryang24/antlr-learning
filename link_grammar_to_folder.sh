@@ -32,7 +32,7 @@ main() {
     for _g in *.g4; do
       for _d in */; do
         _TARGET="${_CURRENT_DIR}/${_g}"
-        _LINK="${_CURRENT_DIR}/${_d}l-${_g}"
+        _LINK="${_CURRENT_DIR}/${_d}${_g}"
         link "${_TARGET}" "${_LINK}"
       done
     done
@@ -41,7 +41,7 @@ main() {
       for _d in */; do
         if [[ -f "${_CURRENT_DIR}/${_file}" ]]; then
           _TARGET="${_CURRENT_DIR}/${_file}"
-          _LINK="${_CURRENT_DIR}/${_d}l-${_file}"
+          _LINK="${_CURRENT_DIR}/${_d}${_file}"
           link "${_TARGET}" "${_LINK}"
         fi
       done
