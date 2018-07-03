@@ -3,7 +3,7 @@ target/
 # ... but not code generation targets
 !tool/src/org/antlr/v4/codegen/target/
 
-# Node.js (npm and typings) cached dependencies 
+# Node.js (npm and typings) cached dependencies
 node_modules/
 typings/
 
@@ -92,7 +92,7 @@ bild_output.txt
 runtime/Cpp/demo/generated
 xcuserdata
 *.jar
-.vscode
+#.vscode
 
 # VSCode Java plugin temporary files
 javac-services.0.log
@@ -100,6 +100,3 @@ javac-services.0.log.lck
 
 # Ignore .antlr4 vscode plugin folder
 .antlr
-
-# Ignore l-* link
-l-*.g4
