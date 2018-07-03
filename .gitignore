@@ -100,3 +100,6 @@ javac-services.0.log.lck
 
 # Ignore .antlr4 vscode plugin folder
 .antlr
+
+# Ignore l-* link
+l-*.g4
