@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 #
+set -o errexit
+
 _ME="$(basename "$0")"
 
 link() {
