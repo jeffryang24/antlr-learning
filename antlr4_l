@@ -73,7 +73,7 @@ EOF
 }
 
 lite_install() {
-  local _lite_install_file="antlr4_l_activate_test"
+  local _lite_install_file="antlr4_l_activate"
   cat <<EOF > "${_lite_install_file}"
 #!/usr/bin/env bash
 # Activate antlr4-l environment
@@ -136,7 +136,7 @@ uninstall_antlr4() {
 }
 
 install_vscode_ext() {
-  if [[ command -v code >/dev/null 2>&1 ]]; then
+  if command -v code >/dev/null 2>&1; then
     printf "%s\n" "Installing ANTLR4 VSCode Extension."
     code --install-extension mike-lischke.vscode-antlr4
   else
