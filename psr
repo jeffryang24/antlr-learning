@@ -5,7 +5,7 @@ set -o errexit
 _ME="$(basename "$0")"
 # It must be depend on user execution directory,
 # not by file location.
-_CURRENT_DIRECTORY="$(pwd)"
+_CURRENT_DIRECTORY="$(cd "$(dirname "$0")" && pwd)"
 
 _ANTLR_DOWNLOAD_POINT="http://www.antlr.org/download"
 _ANTLR4_JAR_VERSION="4.7.1"
@@ -14,8 +14,10 @@ _LIB_DIRECTORY="/usr/local/lib"
 
 _ANTLR4="java -Xmx500M -cp \"${_LIB_DIRECTORY}/${_ANTLR4_JAR}:${CLASSPATH}\" org.antlr.v4.Tool"
 _DEFAULT_LANGUAGE="Java"
-_OUTPUT_DIR=".antlr"
-_OUTPUT_PATH="$(pwd)/${_OUTPUT_DIR}"
+_OUTPUT_DIR="."
+_OUTPUT_PATH="${_CURRENT_DIRECTORY}/${_OUTPUT_DIR}"
+
+_GRAMMARS_DIR="grammars"
 
 is_exist_antlr4() {
   if [[ -f "${_LIB_DIRECTORY}/${_ANTLR4_JAR}" ]]; then
@@ -110,7 +112,7 @@ export _PSR_VENV
 
 # Export new path
 _OLD_PATH="\${PATH}"
-PATH="\${_ANTLR4_L_VENV}:${PATH}"
+PATH="\${_PSR_VENV}:\${PATH}"
 export PATH
 
 if [[ -n "\${BASH-}" ]] && [[ -n "\${ZSH_VERSION-}" ]]; then
@@ -144,9 +146,81 @@ install_vscode_ext() {
   fi
 }
 
+psr_ln() {
+  if [[ "$#" -gt 0 ]]; then
+    local _u_grammar_dir
+    local -a _positional_param
+
+    while [[ "$#" -gt 0 ]]; do
+      local _arg="$1"
+      case ${_arg} in
+        --grammar-dir=*)
+          _u_grammar_dir="${_arg#*=}"
+          shift
+          ;;
+
+        *)
+          _positional_param+=("${_arg}")
+          shift
+          ;;
+      esac
+    done
+
+    # Restore positional arguments
+    eval set -- "${_positional_param[@]}"
+
+    if [[ -z "$1" ]] || [[ -z "$2" ]]; then
+      printf "%s\n" "Action was aborted. Grammar filename and directory target is required."
+      exit 1
+    fi
+
+    local _grammar_file="${1}"
+    local _directory_target="${2}"
+
+    # check _grammar_file is star-card or not?
+    if [[ "${_grammar_file}" == "all" ]]; then
+      for _g_file in ${_u_grammar_dir:-${_GRAMMARS_DIR}}/*.g4; do
+        # TODO(jeffryangtoni24): Improve script. I just sleepy now.
+        if [[ -h "${_CURRENT_DIRECTORY}/${_directory_target}/${_grammar_file}.g4" ]]; then
+          rm -f "${_CURRENT_DIRECTORY}/${_directory_target}/${_grammar_file}.g4"
+        fi
+        ln -s "${_u_grammar_dir}/${_grammar_file}.g4" "${_CURRENT_DIRECTORY}/${_directory_target}/${_grammar_file}.g4"
+      done
+    else
+      if [[ -f "${_u_grammar_dir:-${_GRAMMARS_DIR}}/${_grammar_file}.g4" ]]; then
+        if [[ -h "${_CURRENT_DIRECTORY}/${_directory_target}/${_grammar_file}.g4" ]]; then
+          rm -f "${_CURRENT_DIRECTORY}/${_directory_target}/${_grammar_file}.g4"
+        fi
+        ln -s "${_u_grammar_dir}/${_grammar_file}.g4" "${_CURRENT_DIRECTORY}/${_directory_target}/${_grammar_file}.g4"
+      fi
+    fi
+  else
+    psr_ln_help
+  fi
+}
+
+psr_ln_help() {
+  local _help_ln
+  _help_ln="$(cat <<EOF
+Usage:
+    ${_ME} ln [options] [Grammar Filename] [Directory Target]
+
+Arguments:
+    --grammar-dir=[absolute_path]        ~> Set grammar directory instead of using the default.
+
+Use star-card (*) to select all grammar files, but star-card (*) is not available for
+directory target. Default grammars directory is '${_GRAMMARS_DIR}'. Directory target must
+relative to project directory.
+EOF
+)"
+  printf "%s\n" "${_help_ln}"
+  echo "${_CURRENT_DIRECTORY}"
+  exit 0
+}
+
 help() {
-  local _HELP
-  _HELP="$(cat <<EOF
+  local _help
+  _help="$(cat <<EOF
 Usage:
     ${_ME} [antlr4.sh argument(s)] [antlr4-argument(s)]
 
@@ -154,6 +228,7 @@ Arguments:
     install                     ~> To install antlr4 tool to your rig.
     lite-install                ~> Just generate activation script for current directory.
     vscode-ext                  ~> Install ANTLR4 extension in VSCode Editor.
+    ln                          ~> Link grammar to specific folder.
     uninstall                   ~> Uninstall antlr4 tool from your rig.
     --lang=[LanguageTarget]     ~> Set language target, ex. Python3, Python2, Java.
     --out=[OutputDir]           ~> Set generation result directory.
@@ -162,7 +237,7 @@ Arguments:
 Default language target is Java and OutputDir is "${_OUTPUT_DIR}".
 EOF
 )"
-  printf "%s\n" "${_HELP}"
+  printf "%s\n" "${_help}"
   exit 0
 }
 
@@ -206,6 +281,13 @@ main() {
       vscode-ext)
         shift
         install_vscode_ext
+        break
+        ;;
+
+      ln)
+        shift
+        local -a _ln_param=("${@:1}")
+        psr_ln "${_ln_param[@]}"
         break
         ;;
 
