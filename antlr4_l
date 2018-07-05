@@ -64,7 +64,9 @@ EOF
     fi
 
     printf "%s\n" "ANTLR4 was successfully configured. Well done :D"
-    printf "%s\n" "================================================"
+    printf "%s\n\n" "================================================"
+
+    lite_install
   else
     printf "%s\n" "ANTLR4 is already installed on your rig."
   fi
@@ -133,6 +135,15 @@ uninstall_antlr4() {
   printf "%s\n" "=============================================="
 }
 
+install_vscode_ext() {
+  if [[ command -v code >/dev/null 2>&1 ]]; then
+    printf "%s\n" "Installing ANTLR4 VSCode Extension."
+    code --install-extension mike-lischke.vscode-antlr4
+  else
+    printf "%s\n" "VSCode is not installed. So, no can I do for you.. :D"
+  fi
+}
+
 help() {
   local _HELP
   _HELP="$(cat <<EOF
@@ -142,6 +153,7 @@ Usage:
 Arguments:
     install                     ~> To install antlr4 tool to your rig.
     lite-install                ~> Just generate activation script for current directory.
+    vscode-ext                  ~> Install ANTLR4 extension in VSCode Editor.
     uninstall                   ~> Uninstall antlr4 tool from your rig.
     --lang=[LanguageTarget]     ~> Set language target, ex. Python3, Python2, Java.
     --out=[OutputDir]           ~> Set generation result directory.
@@ -188,6 +200,12 @@ main() {
       uninstall)
         shift
         uninstall_antlr4
+        break
+        ;;
+
+      vscode-ext)
+        shift
+        install_vscode_ext
         break
         ;;
 
