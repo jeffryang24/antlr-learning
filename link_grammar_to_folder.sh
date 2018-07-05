@@ -3,6 +3,7 @@
 set -o errexit
 
 _ME="$(basename "$0")"
+_DEPRECATED=1
 
 link() {
   _TARGET="$1"
@@ -51,4 +52,8 @@ main() {
   fi
 }
 
-main "$@"
+if [[ "${_DEPRECATED}" == "0" ]]; then
+  main "$@"
+else
+  printf "%s\n" "Sorry... Currently this helper was abandoned."
+fi
