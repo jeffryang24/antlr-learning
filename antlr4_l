@@ -70,6 +70,69 @@ EOF
   fi
 }
 
+lite_install() {
+  local _lite_install_file="antlr4_l_activate_test"
+  cat <<EOF > "${_lite_install_file}"
+#!/usr/bin/env bash
+# Activate antlr4-l environment
+printf "%s\n" "Activating antlr4.sh in restricted mode."
+
+antlr4_l_stop() {
+  # Unset -_ANTLR4_L_VENV variable.
+  if [[ ! -z "\${_ANTLR4_L_VENV+_}" ]]; then
+    unset _ANTLR4_L_VENV
+  fi
+
+  # Reset path
+  if [[ ! -z "\${_OLD_PATH+_}" ]]; then
+    PATH="\${_OLD_PATH}"
+    export PATH
+    unset _OLD_PATH
+  fi
+
+  # Forget passed command.
+  if [[ -n "\${BASH-}" ]] && [[ -n "\${ZSH_VERSION-}" ]]; then
+    hash -r 2>/dev/null
+  fi
+
+  if [[ "\${1:-}" != "safe" ]]; then
+    unset -f antlr4_l_stop
+  fi
+}
+
+antlr4_l_stop safe
+
+# Export _ANTLR4_L_VENV.
+_ANTLR4_L_VENV="${_CURRENT_DIRECTORY}"
+export _ANTLR4_L_VENV
+
+# Export new path
+_OLD_PATH="\${PATH}"
+PATH="\${_ANTLR4_L_VENV}:${PATH}"
+export PATH
+
+if [[ -n "\${BASH-}" ]] && [[ -n "\${ZSH_VERSION-}" ]]; then
+  hash -r 2>/dev/null
+fi
+
+printf "%s\n" "You can use 'antlr4_l' now inside current directory."
+EOF
+chmod +x "${_lite_install_file}"
+printf "%s\n" "Activation script was generated. Use 'source ${_lite_install_file}' to activate current directory."
+}
+
+uninstall_antlr4() {
+  printf "%s\n" "Removing ANTLR4 and all of its configuration."
+  # Remove jar
+  sudo rm -rf "${_LIB_DIRECTORY}/${_ANTLR4_JAR}"
+
+  # Remove classpath
+  sed -i -e '/alias antlr4/d' -e '/alias grun/d' "${HOME}/.bashrc"
+
+  printf "%s\n" "ANTLR4 was successfully removed. Well Done :'("
+  printf "%s\n" "=============================================="
+}
+
 help() {
   local _HELP
   _HELP="$(cat <<EOF
@@ -78,6 +141,8 @@ Usage:
 
 Arguments:
     install                     ~> To install antlr4 tool to your rig.
+    lite-install                ~> Just generate activation script for current directory.
+    uninstall                   ~> Uninstall antlr4 tool from your rig.
     --lang=[LanguageTarget]     ~> Set language target, ex. Python3, Python2, Java.
     --out=[OutputDir]           ~> Set generation result directory.
     [antlr4-tool-argument]      ~> ANTLR4 Tool argument(s)
@@ -114,9 +179,15 @@ main() {
         break
         ;;
 
-      activate)
+      lite-install)
         shift
-        activate_sh
+        lite_install
+        break
+        ;;
+
+      uninstall)
+        shift
+        uninstall_antlr4
         break
         ;;
 
@@ -157,7 +228,7 @@ else
   if [[ "${_CURRENT_DIRECTORY}" == "${_ANTLR4_L_VENV}" ]]; then
     main "$@"
   else
-    printf "%s" "antlr4.sh command is running in restricted mode. " \
+    printf "%s" "${_ME} command is running in restricted mode. " \
     "Please ensure that current directory is activated."
     printf "\n"
   fi
