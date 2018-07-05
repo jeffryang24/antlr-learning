@@ -73,16 +73,16 @@ EOF
 }
 
 lite_install() {
-  local _lite_install_file="antlr4_l_activate"
+  local _lite_install_file="psr_activate"
   cat <<EOF > "${_lite_install_file}"
 #!/usr/bin/env bash
 # Activate antlr4-l environment
-printf "%s\n" "Activating antlr4.sh in restricted mode."
+printf "%s\n" "Activating psr in restricted mode."
 
-antlr4_l_stop() {
+psr_stop() {
   # Unset -_ANTLR4_L_VENV variable.
-  if [[ ! -z "\${_ANTLR4_L_VENV+_}" ]]; then
-    unset _ANTLR4_L_VENV
+  if [[ ! -z "\${_PSR_VENV+_}" ]]; then
+    unset _PSR_VENV
   fi
 
   # Reset path
@@ -98,15 +98,15 @@ antlr4_l_stop() {
   fi
 
   if [[ "\${1:-}" != "safe" ]]; then
-    unset -f antlr4_l_stop
+    unset -f psr_stop
   fi
 }
 
-antlr4_l_stop safe
+psr_stop safe
 
-# Export _ANTLR4_L_VENV.
-_ANTLR4_L_VENV="${_CURRENT_DIRECTORY}"
-export _ANTLR4_L_VENV
+# Export _PSR_VENV.
+_PSR_VENV="${_CURRENT_DIRECTORY}"
+export _PSR_VENV
 
 # Export new path
 _OLD_PATH="\${PATH}"
@@ -117,7 +117,7 @@ if [[ -n "\${BASH-}" ]] && [[ -n "\${ZSH_VERSION-}" ]]; then
   hash -r 2>/dev/null
 fi
 
-printf "%s\n" "You can use 'antlr4_l' now inside current directory."
+printf "%s\n" "You can use 'psr' now inside current directory."
 EOF
 chmod +x "${_lite_install_file}"
 printf "%s\n" "Activation script was generated. Use 'source ${_lite_install_file}' to activate current directory."
