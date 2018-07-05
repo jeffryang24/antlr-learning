@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+#
+set -o errexit
+
+_ME="$(basename "$0")"
+# It must be depend on user execution directory,
+# not by file location.
+_CURRENT_DIRECTORY="$(pwd)"
+
+_ANTLR_DOWNLOAD_POINT="http://www.antlr.org/download"
+_ANTLR4_JAR_VERSION="4.7.1"
+_ANTLR4_JAR="antlr-${_ANTLR4_JAR_VERSION}-complete.jar"
+_LIB_DIRECTORY="/usr/local/lib"
+
+_ANTLR4="java -Xmx500M -cp \"${_LIB_DIRECTORY}/${_ANTLR4_JAR}:${CLASSPATH}\" org.antlr.v4.Tool"
+_DEFAULT_LANGUAGE="Java"
+_OUTPUT_DIR=".antlr"
+_OUTPUT_PATH="$(pwd)/${_OUTPUT_DIR}"
+
+is_exist_antlr4() {
+  if [[ -f "${_LIB_DIRECTORY}/${_ANTLR4_JAR}" ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+install_antlr4() {
+  if ! is_exist_antlr4; then
+    printf "%s\n" "Downloading ANTLR4 ${_ANTLR4_JAR_VERSION} Tool..."
+    if command -v curl >/dev/null 2>&1; then
+      sudo curl -o "${_LIB_DIRECTORY}/${_ANTLR4_JAR}" "${_ANTLR_DOWNLOAD_POINT}/${_ANTLR4_JAR}"
+    else
+      sudo wget --output-document="${_LIB_DIRECTORY}/${_ANTLR4_JAR}" "${_ANTLR_DOWNLOAD_POINT}/${_ANTLR4_JAR}"
+    fi
+
+    printf "%s\n" "Chmod-ing 755 to ANTLR4 tool."
+    sudo chmod 755 "${_LIB_DIRECTORY}/${_ANTLR4_JAR}"
+
+    printf "%s\n" "Add antlr4 to classpath..."
+    if ! grep -Fq ":${_LIB_DIRECTORY}/${_ANTLR4_JAR}:" "${HOME}/.bashrc"; then
+      cat <<EOF >> "${HOME}/.bashrc"
+
+# Add ANTLR4 to CLASSPATH
+export CLASSPATH=".:${_LIB_DIRECTORY}/${_ANTLR4_JAR}:${CLASSPATH}"
+EOF
+    fi
+
+    printf "%s\n" "Add alias for antlr4 and grun..."
+    if ! grep -Fq "alias antlr4=" "${HOME}/.bashrc"; then
+      cat <<EOF >> "${HOME}/.bashrc"
+
+# Export antlr4 alias
+alias antlr4='java -Xmx500M -cp "${_LIB_DIRECTORY}/{_ANTLR4_JAR}:$CLASSPATH" org.antlr.v4.Tool'
+EOF
+    fi
+
+    if ! grep -Fq "alias grun=" "${HOME}/.bashrc"; then
+      cat <<EOF >> "${HOME}/.bashrc"
+
+# Export grun alias
+alias grun='java org.antlr.v4.gui.TestRig'
+EOF
+    fi
+
+    printf "%s\n" "ANTLR4 was successfully configured. Well done :D"
+    printf "%s\n" "================================================"
+  else
+    printf "%s\n" "ANTLR4 is already installed on your rig."
+  fi
+}
+
+help() {
+  local _HELP
+  _HELP="$(cat <<EOF
+Usage:
+    ${_ME} [antlr4.sh argument(s)] [antlr4-argument(s)]
+
+Arguments:
+    install                     ~> To install antlr4 tool to your rig.
+    --lang=[LanguageTarget]     ~> Set language target, ex. Python3, Python2, Java.
+    --out=[OutputDir]           ~> Set generation result directory.
+    [antlr4-tool-argument]      ~> ANTLR4 Tool argument(s)
+
+Default language target is Java and OutputDir is "${_OUTPUT_DIR}".
+EOF
+)"
+  printf "%s\n" "${_HELP}"
+  exit 0
+}
+
+main() {
+  if [[ "$#" -eq "0" ]]; then
+    help
+  fi
+
+  local _u_language
+  local _u_out_dir
+
+  local -a _positional_param=()
+
+  while [[ "$#" -gt 0 ]]; do
+    local key="$1"
+
+    case ${key} in
+      --help)
+        shift
+        help
+        ;;
+
+      install)
+        shift
+        install_antlr4
+        break
+        ;;
+
+      activate)
+        shift
+        activate_sh
+        break
+        ;;
+
+      --lang=*)
+        _u_language="${1#*=}"
+        shift
+        ;;
+
+      --out=*)
+        _u_out_dir="${1#*=}"
+        shift
+        ;;
+
+      -o)
+        # Don't parse -o argument to antlr
+        # because there is already --out argument
+        shift 2
+        ;;
+
+      *)
+        # let default antlr4 parameter flows...
+        _positional_param+=("${key}")
+        shift
+        ;;
+    esac
+  done
+
+  # restore positional parameters
+  eval set -- "${_positional_param[@]}"
+
+  eval "${_ANTLR4}" -o "${_u_out_dir:-${_OUTPUT_PATH}}" -Dlanguage="${_u_language:-${_DEFAULT_LANGUAGE}}" "$@"
+}
+
+# Restricted environment validation
+if [[ -z "${_ANTLR4_L_VENV+_}" ]]; then
+  main "$@"
+else
+  if [[ "${_CURRENT_DIRECTORY}" == "${_ANTLR4_L_VENV}" ]]; then
+    main "$@"
+  else
+    printf "%s" "antlr4.sh command is running in restricted mode. " \
+    "Please ensure that current directory is activated."
+    printf "\n"
+  fi
+fi
