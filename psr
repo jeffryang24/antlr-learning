@@ -239,15 +239,4 @@ main() {
   eval "${_ANTLR4}" -o "${_u_out_dir:-${_OUTPUT_PATH}}" -Dlanguage="${_u_language:-${_DEFAULT_LANGUAGE}}" "$@"
 }
 
-# Restricted environment validation
-if [[ -z "${_ANTLR4_L_VENV+_}" ]]; then
-  main "$@"
-else
-  if [[ "${_CURRENT_DIRECTORY}" == "${_ANTLR4_L_VENV}" ]]; then
-    main "$@"
-  else
-    printf "%s" "${_ME} command is running in restricted mode. " \
-    "Please ensure that current directory is activated."
-    printf "\n"
-  fi
-fi
+main "$@"
