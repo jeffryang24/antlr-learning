@@ -16,6 +16,12 @@ To uninstall it, just issuing
 psr uninstall
 ```
 
+To install the vscode extension, just issuing
+
+```bash
+psr vscode-ext
+```
+
 Or if you already have ANTLR4 inside your rig, you can just use `psr` to execute the grammar.
 
 ```bash
@@ -28,7 +34,8 @@ Yes, you can copy it to another ANTLR4 project for helping you generating gramma
 
 ## Experimental
 
-This is nothing... I just learn how to create an activation script like `pipenv` do.
+This is nothing... I just learn how to create an activation script like `pipenv` do. To access `psr` command from another directory, you can use this experimental feature or 
+just export the project directory to `$PATH` variable.
 
 ```bash
 # If you use default install, then below command 
