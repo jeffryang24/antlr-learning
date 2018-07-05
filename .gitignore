@@ -100,4 +100,4 @@ javac-services.0.log.lck
 
 # Ignore .antlr4 vscode plugin folder
 .antlr
-antlr4_l_activate
+psr_activate
