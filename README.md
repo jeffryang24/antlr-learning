@@ -28,7 +28,7 @@ Yes, you can copy it to another ANTLR4 project for helping you generating gramma
 
 ## Experimental
 
-If you want to use restricted mode (the `psr` command will be restrictly available through your project subdirectory), just issuing below command.
+This is nothing... I just learn how to create an activation script like `pipenv` do.
 
 ```bash
 # If you use default install, then below command 
@@ -40,5 +40,3 @@ source psr_activate
 # To deactivate current environment
 psr_stop
 ```
-
-In the future, this script will handle multi ANTLR version (I hope I have free time to fulfill it. Hahaha...)
