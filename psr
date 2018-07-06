@@ -180,18 +180,20 @@ psr_ln() {
     # check _grammar_file is star-card or not?
     if [[ "${_grammar_file}" == "all" ]]; then
       for _g_file in ${_u_grammar_dir:-${_GRAMMARS_DIR}}/*.g4; do
-        # TODO(jeffryangtoni24): Improve script. I just sleepy now.
-        if [[ -h "${_CURRENT_DIRECTORY}/${_directory_target}/${_grammar_file}.g4" ]]; then
-          rm -f "${_CURRENT_DIRECTORY}/${_directory_target}/${_grammar_file}.g4"
-        fi
-        ln -s "${_u_grammar_dir}/${_grammar_file}.g4" "${_CURRENT_DIRECTORY}/${_directory_target}/${_grammar_file}.g4"
+        local _tmp_file="${_g_file##*/}"
+        local _tmp_file_name="${_tmp_file%%.g4}"
+        printf "%s" "Cloning grammar '${_tmp_file}' to target directory. "
+        sed -e "s/${_tmp_file_name}/PSR_${_tmp_file_name}/" < "${_g_file}" > "${_CURRENT_DIRECTORY}/${_directory_target}/PSR_${_tmp_file}"
+        printf "%s\n" "Done."
       done
     else
-      if [[ -f "${_u_grammar_dir:-${_GRAMMARS_DIR}}/${_grammar_file}.g4" ]]; then
-        if [[ -h "${_CURRENT_DIRECTORY}/${_directory_target}/${_grammar_file}.g4" ]]; then
-          rm -f "${_CURRENT_DIRECTORY}/${_directory_target}/${_grammar_file}.g4"
-        fi
-        ln -s "${_u_grammar_dir}/${_grammar_file}.g4" "${_CURRENT_DIRECTORY}/${_directory_target}/${_grammar_file}.g4"
+      local _grammar_fullpath="${_u_grammar_dir:-${_GRAMMARS_DIR}}/${_grammar_file}.g4"
+      if [[ -f "${_grammar_fullpath}" ]]; then
+        printf "%s" "Cloning grammar '${_grammar_file}.g4' to target directory. "
+        sed -e "s/${_grammar_file}/PSR_${_grammar_file}/" < "${_grammar_fullpath}" > "${_CURRENT_DIRECTORY}/${_directory_target}/PSR_${_grammar_file}.g4"
+        printf "%s\n" "Done."
+      else
+        printf "%s\n" "File does not exist at '${_grammar_fullpath}'."
       fi
     fi
   else
@@ -214,7 +216,6 @@ relative to project directory.
 EOF
 )"
   printf "%s\n" "${_help_ln}"
-  echo "${_CURRENT_DIRECTORY}"
   exit 0
 }
 
@@ -222,7 +223,7 @@ help() {
   local _help
   _help="$(cat <<EOF
 Usage:
-    ${_ME} [antlr4.sh argument(s)] [antlr4-argument(s)]
+    ${_ME} [psr argument(s)] [antlr4-argument(s)]
 
 Arguments:
     install                     ~> To install antlr4 tool to your rig.
@@ -263,32 +264,32 @@ main() {
       install)
         shift
         install_antlr4
-        break
+        exit $?
         ;;
 
       lite-install)
         shift
         lite_install
-        break
+        exit $?
         ;;
 
       uninstall)
         shift
         uninstall_antlr4
-        break
+        exit $?
         ;;
 
       vscode-ext)
         shift
         install_vscode_ext
-        break
+        exit $?
         ;;
 
       ln)
         shift
         local -a _ln_param=("${@:1}")
         psr_ln "${_ln_param[@]}"
-        break
+        exit $?
         ;;
 
       --lang=*)
