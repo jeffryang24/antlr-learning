@@ -111,3 +111,4 @@ PSR_*.g4
 *Listener.*
 *Lexer.*
 *Parser.*
+*.class
