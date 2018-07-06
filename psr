@@ -15,7 +15,7 @@ _LIB_DIRECTORY="/usr/local/lib"
 _ANTLR4="java -Xmx500M -cp \"${_LIB_DIRECTORY}/${_ANTLR4_JAR}:${CLASSPATH}\" org.antlr.v4.Tool"
 _DEFAULT_LANGUAGE="Java"
 _OUTPUT_DIR="."
-_OUTPUT_PATH="${_CURRENT_DIRECTORY}/${_OUTPUT_DIR}"
+_OUTPUT_PATH="$(pwd)/${_OUTPUT_DIR}"
 
 _GRAMMARS_DIR="grammars"
 
@@ -79,7 +79,7 @@ lite_install() {
   cat <<EOF > "${_lite_install_file}"
 #!/usr/bin/env bash
 # Activate antlr4-l environment
-printf "%s\n" "Activating psr in restricted mode."
+printf "%s\n" "Activating psr in virtualenv mode."
 
 psr_stop() {
   # Unset -_ANTLR4_L_VENV variable.
@@ -119,7 +119,7 @@ if [[ -n "\${BASH-}" ]] && [[ -n "\${ZSH_VERSION-}" ]]; then
   hash -r 2>/dev/null
 fi
 
-printf "%s\n" "You can use 'psr' now inside current directory."
+printf "%s\n" "You can use 'psr' now in any directory."
 EOF
 chmod +x "${_lite_install_file}"
 printf "%s\n" "Activation script was generated. Use 'source ${_lite_install_file}' to activate current directory."
